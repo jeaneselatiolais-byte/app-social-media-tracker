@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Pre-Launch Marketing Tracker</title>
+<style>
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f5f4;
+  --color-background-danger: #fcebeb;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #6b6b6b;
+  --color-text-tertiary: #999999;
+  --color-text-danger: #a32d2d;
+  --color-border-tertiary: rgba(0,0,0,0.1);
+  --color-border-secondary: rgba(0,0,0,0.18);
+  --color-border-primary: rgba(0,0,0,0.3);
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-primary: #1c1c1e;
+    --color-background-secondary: #2c2c2e;
+    --color-background-danger: #3a1a1a;
+    --color-text-primary: #f0f0f0;
+    --color-text-secondary: #a0a0a0;
+    --color-text-tertiary: #666666;
+    --color-text-danger: #f09595;
+    --color-border-tertiary: rgba(255,255,255,0.1);
+    --color-border-secondary: rgba(255,255,255,0.18);
+    --color-border-primary: rgba(255,255,255,0.3);
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); background: var(--color-background-secondary); min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; }
+.tracker { display: flex; min-height: 580px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; background: var(--color-background-primary); width: 100%; max-width: 860px; box-shadow: 0 2px 24px rgba(0,0,0,0.08); }
+.sidebar { width: 196px; min-width: 196px; background: var(--color-background-secondary); border-right: 0.5px solid var(--color-border-tertiary); display: flex; flex-direction: column; }
+.sidebar-header { padding: 14px 14px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.sidebar-title { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; }
+.app-list { flex: 1; overflow-y: auto; padding: 8px; }
+.app-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--border-radius-md); cursor: pointer; margin-bottom: 2px; transition: background 0.15s; }
+.app-item:hover { background: var(--color-background-primary); }
+.app-item.active { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); }
+.app-emoji { font-size: 16px; flex-shrink: 0; }
+.app-info { flex: 1; min-width: 0; }
+.app-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-prog { font-size: 11px; color: var(--color-text-tertiary); }
+.del-btn { opacity: 0; font-size: 11px; color: var(--color-text-tertiary); background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; flex-shrink: 0; }
+.app-item:hover .del-btn { opacity: 1; }
+.del-btn:hover { background: var(--color-background-danger); color: var(--color-text-danger); }
+.add-btn { margin: 8px; padding: 8px 12px; background: none; border: 0.5px dashed var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; font-size: 12px; color: var(--color-text-secondary); font-family: var(--font-sans); transition: all 0.15s; }
+.add-btn:hover { background: var(--color-background-primary); color: var(--color-text-primary); }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 40px; }
+.empty-icon { font-size: 32px; }
+.empty-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.empty-sub { font-size: 13px; color: var(--color-text-secondary); text-align: center; line-height: 1.5; }
+.app-header { padding: 16px 20px 0; border-bottom: 0.5px solid var(--color-border-tertiary); flex-shrink: 0; }
+.app-title-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.app-big-name { font-size: 17px; font-weight: 500; color: var(--color-text-primary); }
+.app-date { font-size: 12px; color: var(--color-text-tertiary); }
+.overall-bar-wrap { margin-bottom: 14px; }
+.overall-label { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.overall-label span:first-child { font-size: 12px; color: var(--color-text-secondary); }
+.overall-label span:last-child { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+.bar-track { height: 5px; background: var(--color-border-tertiary); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.view-tabs { display: flex; gap: 0; border-bottom: none; padding-bottom: 0; }
+.view-tab { padding: 8px 16px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; border: none; background: none; font-family: var(--font-sans); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; margin-bottom: -0.5px; }
+.view-tab:hover { color: var(--color-text-primary); }
+.view-tab.active { color: var(--color-text-primary); border-bottom-color: var(--tab-color, #1D9E75); }
+.ai-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #1D9E75; margin-left: 5px; vertical-align: middle; }
+.phase-tabs { display: flex; gap: 0; overflow-x: auto; flex-shrink: 0; padding: 0 20px; background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+.phase-tab { padding: 7px 10px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; border: none; background: none; font-family: var(--font-sans); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; margin-bottom: -0.5px; }
+.phase-tab:hover { color: var(--color-text-primary); }
+.phase-tab.active { color: var(--color-text-primary); border-bottom-color: var(--phase-color); }
+.phase-badge { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 8px; font-size: 9px; font-weight: 500; margin-left: 4px; }
+.content { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.phase-section { margin-bottom: 20px; }
+.section-label { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; }
+.check-item:last-child { border-bottom: none; }
+.check-box { width: 16px; height: 16px; min-width: 16px; border-radius: 4px; border: 0.5px solid var(--color-border-secondary); background: none; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.check-text { font-size: 13px; color: var(--color-text-primary); line-height: 1.5; transition: color 0.15s; }
+.check-text.done { color: var(--color-text-tertiary); text-decoration: line-through; }
+.phase-progress { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); margin-bottom: 16px; }
+.phase-count { font-size: 13px; color: var(--color-text-secondary); flex: 1; }
+.phase-count strong { color: var(--color-text-primary); }
+.ai-panel { padding: 16px 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.ai-generate-area { display: flex; flex-direction: column; gap: 10px; }
+.ai-context-row { display: flex; gap: 8px; align-items: flex-end; }
+.ai-context-col { flex: 1; }
+.ai-context-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.ai-context-col input, .ai-context-col select { width: 100%; padding: 7px 10px; font-size: 13px; font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); outline: none; }
+.ai-context-col input:focus, .ai-context-col select:focus { border-color: var(--color-border-primary); }
+.ai-gen-btn { padding: 8px 16px; background: #1D9E75; border: none; border-radius: var(--border-radius-md); font-size: 13px; font-family: var(--font-sans); color: white; cursor: pointer; font-weight: 500; white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; gap: 6px; align-self: flex-start; }
+.ai-gen-btn:hover { background: #0F6E56; }
+.ai-gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ai-results { display: flex; flex-direction: column; gap: 8px; }
+.ai-insight-card { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.ai-insight-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.ai-cat-badge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
+.ai-insight-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.ai-insight-body { font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; }
+.ai-loading { display: flex; align-items: center; gap: 10px; padding: 20px; }
+.ai-spinner { width: 16px; height: 16px; border: 2px solid var(--color-border-tertiary); border-top-color: #1D9E75; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-loading-text { font-size: 13px; color: var(--color-text-secondary); }
+.ai-error { font-size: 13px; color: var(--color-text-danger); padding: 12px; background: var(--color-background-danger); border-radius: var(--border-radius-md); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 10; }
+.modal { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 20px; width: 280px; }
+.modal-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 16px; }
+.modal-field { margin-bottom: 12px; }
+.modal-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; display: block; }
+.modal input { width: 100%; padding: 8px 10px; font-size: 14px; font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); outline: none; }
+.modal input:focus { border-color: var(--color-border-primary); }
+.emoji-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.emoji-opt { width: 32px; height: 32px; font-size: 16px; display: flex; align-items: center; justify-content: center; border-radius: var(--border-radius-md); border: 0.5px solid transparent; cursor: pointer; }
+.emoji-opt:hover { background: var(--color-background-secondary); }
+.emoji-opt.sel { border-color: var(--color-border-primary); background: var(--color-background-secondary); }
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+.btn-cancel { flex: 1; padding: 8px; background: none; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 13px; font-family: var(--font-sans); color: var(--color-text-secondary); cursor: pointer; }
+.btn-cancel:hover { background: var(--color-background-secondary); }
+.btn-create { flex: 1; padding: 8px; background: #1D9E75; border: none; border-radius: var(--border-radius-md); font-size: 13px; font-family: var(--font-sans); color: white; cursor: pointer; font-weight: 500; }
+.btn-create:hover { background: #0F6E56; }
+.btn-create:disabled { opacity: 0.4; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+const PHASES = [
+  { id:'prelaunch', phase:'Pre-Launch', days:'Days -30 to 0', color:'#1D9E75',
+    sections:[
+      { title:'App Store Preparation', items:[
+        {id:'a1',text:'Finalize app name (30 char max)'},{id:'a2',text:'Write subtitle (30 char max)'},{id:'a3',text:'Write keyword field (100 char max)'},{id:'a4',text:'Write full description (4,000 char max)'},{id:'a5',text:'Write promotional text (170 char max)'},{id:'a6',text:'Design app icon (1024×1024px)'},{id:'a7',text:'Create screenshots for all device sizes'},{id:'a8',text:'Create App Preview video'},{id:'a9',text:'Choose primary & secondary categories'},{id:'a10',text:'Set age rating & content advisories'},{id:'a11',text:'Set pricing & availability (all regions)'},{id:'a12',text:'Create support URL & privacy policy page'},
+      ]},
+      { title:'Social & Community Setup', items:[
+        {id:'b1',text:'Optimize X (Twitter) profile for the app'},{id:'b2',text:'Create TikTok account'},{id:'b3',text:'Set up Instagram account'},{id:'b4',text:'Identify 5+ key subreddits for your audience'},{id:'b5',text:'Build email waitlist with landing page'},{id:'b6',text:'Set up link-in-bio'},
+      ]},
+      { title:'Content Pre-Production', items:[
+        {id:'c1',text:'Create teaser / announcement post'},{id:'c2',text:'Record build-in-public behind-the-scenes content'},{id:'c3',text:'Write launch announcement blog post'},{id:'c4',text:'Produce launch day video (YouTube / TikTok)'},{id:'c5',text:'Design promotional graphics & social assets'},
+      ]},
+      { title:'Press & Outreach', items:[
+        {id:'d1',text:'Write press release'},{id:'d2',text:'Build list: AppAdvice, MacStories, 9to5Mac'},{id:'d3',text:'Identify podcast hosts in your niche'},{id:'d4',text:'Reach out to influencers & early adopters'},
+      ]},
+      { title:'Beta Testing', items:[
+        {id:'e1',text:'Set up TestFlight internal testing'},{id:'e2',text:'Recruit 20+ external beta testers'},{id:'e3',text:'Collect & prioritize beta feedback'},{id:'e4',text:'Fix critical bugs from beta round'},
+      ]},
+    ]
+  },
+  { id:'launch', phase:'Launch Week', days:'Days 1–7', color:'#534AB7',
+    sections:[
+      { title:'App Store', items:[
+        {id:'f1',text:'Submit app to App Store for review'},{id:'f2',text:'Monitor crash reports in Xcode Organizer'},{id:'f3',text:'Track keyword rankings in App Store Connect'},{id:'f4',text:'Respond to every early App Store review'},
+      ]},
+      { title:'Launch Announcements', items:[
+        {id:'g1',text:'Publish launch post on X / Twitter'},{id:'g2',text:'Post launch reel on TikTok & Instagram'},{id:'g3',text:'Publish launch video on YouTube'},{id:'g4',text:'Email your waitlist'},{id:'g5',text:'Submit & post on Product Hunt'},{id:'g6',text:'Post in all relevant subreddits'},{id:'g7',text:'DM beta testers requesting App Store reviews'},{id:'g8',text:'Send download codes to app review sites'},{id:'g9',text:'Post "Day 1 results" story / update'},
+      ]},
+    ]
+  },
+  { id:'postlaunch', phase:'Post-Launch', days:'Days 8–30', color:'#BA7517',
+    sections:[
+      { title:'Analysis', items:[
+        {id:'h1',text:'Analyze Week 1 metrics (downloads, revenue, retention)'},{id:'h2',text:'Analyze keyword performance & iterate'},{id:'h3',text:'Identify top acquisition channels'},
+      ]},
+      { title:'App Store Optimization', items:[
+        {id:'i1',text:'A/B test screenshots in App Store Connect'},{id:'i2',text:'Respond to every App Store review'},{id:'i3',text:'Submit first bug fix / polish update'},
+      ]},
+      { title:'Marketing', items:[
+        {id:'j1',text:'Continue posting 3×/week on all social channels'},{id:'j2',text:'Pitch to relevant podcasts'},{id:'j3',text:'Post "first month results" transparency content'},{id:'j4',text:'Submit to app directories (AppShopper, AlternativeTo)'},{id:'j5',text:'Set up Apple Search Ads basic campaign'},{id:'j6',text:'Pitch to newsletter curators (iOS Dev Weekly, etc.)'},
+      ]},
+    ]
+  },
+  { id:'growth', phase:'Growth', days:'Days 31–60', color:'#3B6D11',
+    sections:[
+      { title:'ASO & Product', items:[
+        {id:'k1',text:'Revise ASO metadata based on 30-day data'},{id:'k2',text:'Plan first major feature update from user feedback'},{id:'k3',text:'Set up push notification re-engagement campaign'},
+      ]},
+      { title:'Paid & Partnerships', items:[
+        {id:'l1',text:'Scale Apple Search Ads (optimize bids & keywords)'},{id:'l2',text:'Run a limited-time promotional price or sale'},{id:'l3',text:'Cross-promote with complementary indie apps'},{id:'l4',text:'Apply for App Store featuring via App Store Connect'},
+      ]},
+      { title:'Content & Community', items:[
+        {id:'m1',text:'Create "how to use" tutorial content series'},{id:'m2',text:'Gather power user case studies / testimonials'},{id:'m3',text:'Submit for Apple Design Awards (if eligible)'},{id:'m4',text:'Create SEO comparison / alternative content'},
+      ]},
+    ]
+  },
+  { id:'scale', phase:'Scale', days:'Days 61–90', color:'#993C1D',
+    sections:[
+      { title:'Product & Store', items:[
+        {id:'n1',text:'Launch first major feature update (v1.1+)'},{id:'n2',text:'Follow up on App Store featuring pitch'},{id:'n3',text:'Analyze 90-day cohort (retention, LTV, churn)'},{id:'n4',text:'Build v2 roadmap based on user input'},
+      ]},
+      { title:'Content & Retrospective', items:[
+        {id:'o1',text:'Write 90-day retrospective blog post'},{id:'o2',text:'Create "90-day lessons" YouTube video'},{id:'o3',text:'Submit to additional award programs'},{id:'o4',text:'Document long-term content & growth strategy'},
+      ]},
+    ]
+  }
+];
+
+const ALL_IDS = PHASES.flatMap(p=>p.sections.flatMap(s=>s.items.map(i=>i.id)));
+const TOTAL = ALL_IDS.length;
+const EMOJIS = ['📱','🚀','⭐','🎯','💡','🔥','🌟','💎','🎮','🎵','📸','🌿','🏆','⚡','🎨'];
+const CAT_COLORS = {
+  'ASO':['#E1F5EE','#0F6E56'], 'Content':['#EEEDFE','#3C3489'], 'Community':['#FAEEDA','#854F0B'],
+  'Paid':['#EAF3DE','#27500A'], 'PR':['#FAECE7','#712B13'], 'Analytics':['#E6F1FB','#0C447C'],
+  'Strategy':['#FBEAF0','#72243E'], 'General':['#F1EFE8','#444441']
+};
+
+let state = {
+  apps: [], checks: {}, selectedId: null, activePhase: 'prelaunch',
+  activeView: 'checklist', showModal: false, newName: '', newEmoji: '📱',
+  aiState: 'idle', aiResults: [], aiAppType: '', aiPhaseOverride: '', aiStream: ''
+};
+
+function loadData() {
+  try {
+    const a = localStorage.getItem('mktr_apps');
+    const c = localStorage.getItem('mktr_checks');
+    if(a) state.apps = JSON.parse(a);
+    if(c) state.checks = JSON.parse(c);
+  } catch(e) {}
+  render();
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('mktr_apps', JSON.stringify(state.apps));
+    localStorage.setItem('mktr_checks', JSON.stringify(state.checks));
+  } catch(e) {}
+}
+
+function getProgress(appId, phaseId) {
+  const phase = PHASES.find(p=>p.id===phaseId);
+  if(!phase) return {checked:0,total:0};
+  const items = phase.sections.flatMap(s=>s.items);
+  return {checked:items.filter(i=>state.checks[appId+'-'+i.id]).length, total:items.length};
+}
+
+function getTotal(appId) {
+  return {checked:ALL_IDS.filter(id=>state.checks[appId+'-'+id]).length, total:TOTAL};
+}
+
+function pct(n,t) { return t===0?0:Math.round((n/t)*100); }
+
+async function generateAI() {
+  const app = state.apps.find(a=>a.id===state.selectedId);
+  if(!app) return;
+  state.aiState = 'loading'; state.aiResults = []; state.aiStream = ''; render();
+
+  const phaseName = state.aiPhaseOverride || PHASES.find(p=>p.id===state.activePhase)?.phase || 'Pre-Launch';
+  const appType = state.aiAppType || app.name;
+  const {checked, total} = getTotal(app.id);
+
+  const prompt = `You are an expert iOS app marketing strategist specializing in indie developer launches.
+
+App: "${app.name}" (${appType})
+Marketing phase: ${phaseName}
+Checklist progress: ${checked}/${total} tasks completed
+
+Generate 5 creative, specific, high-impact marketing ideas that an indie iOS developer would NOT typically think of for this phase. These should go beyond standard advice.
+
+Respond ONLY with valid JSON — no markdown, no backticks, no preamble:
+{"insights":[{"title":"...","category":"ASO|Content|Community|Paid|PR|Analytics|Strategy","body":"2-3 sentence specific, actionable tip"}]}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    });
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    const text = data.content?.find(b=>b.type==='text')?.text || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    state.aiResults = parsed.insights || [];
+    state.aiState = 'done';
+  } catch(e) {
+    state.aiState = 'error';
+    state.aiStream = e.message || 'Something went wrong.';
+  }
+  render();
+}
+
+function render() {
+  const root = document.getElementById('root');
+  const app = state.apps.find(a=>a.id===state.selectedId);
+  const phase = PHASES.find(p=>p.id===state.activePhase);
+
+  const sidebarItems = state.apps.map(a=>{
+    const {checked,total} = getTotal(a.id);
+    return `<div class="app-item ${a.id===state.selectedId?'active':''}" onclick="selectApp('${a.id}')">
+      <span class="app-emoji">${a.emoji}</span>
+      <div class="app-info">
+        <div class="app-name">${a.name}</div>
+        <div class="app-prog">${pct(checked,total)}% done</div>
+      </div>
+      <button class="del-btn" onclick="event.stopPropagation();delApp('${a.id}')">✕</button>
+    </div>`;
+  }).join('') || '<div style="padding:12px 10px;font-size:12px;color:var(--color-text-tertiary)">No apps yet</div>';
+
+  let mainContent = '';
+  if(!app) {
+    mainContent = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No app selected</div><div class="empty-sub">Add an app to start tracking your 90-day launch marketing checklist.</div></div>`;
+  } else {
+    const {checked:tc,total:tt} = getTotal(app.id);
+    const barColor = phase?.color||'#1D9E75';
+    const isChecklist = state.activeView === 'checklist';
+    const phaseColor = phase?.color||'#1D9E75';
+    const {checked:phC,total:phT} = getProgress(app.id,state.activePhase);
+
+    const phaseTabs = PHASES.map(ph=>{
+      const {checked:pc} = getProgress(app.id,ph.id);
+      const items = ph.sections.flatMap(s=>s.items);
+      const done = pc===items.length;
+      return `<button class="phase-tab ${ph.id===state.activePhase?'active':''}" style="--phase-color:${ph.color}" onclick="setPhase('${ph.id}')">
+        ${ph.phase}
+        <span class="phase-badge" style="background:${done?ph.color:'var(--color-border-tertiary)'};color:${done?'white':'var(--color-text-tertiary)'}">${pc}</span>
+      </button>`;
+    }).join('');
+
+    let viewContent = '';
+    if(isChecklist) {
+      const sections = phase?.sections.map(sec=>{
+        const items = sec.items.map(item=>{
+          const key = app.id+'-'+item.id;
+          const done = !!state.checks[key];
+          return `<div class="check-item" onclick="toggle('${key}')">
+            <div class="check-box" style="${done?'background:'+phaseColor+';border-color:'+phaseColor:''}">
+              ${done?'<span style="color:white;font-size:10px;font-weight:700">✓</span>':''}
+            </div>
+            <span class="check-text ${done?'done':''}">${item.text}</span>
+          </div>`;
+        }).join('');
+        return `<div class="phase-section"><div class="section-label">${sec.title}</div>${items}</div>`;
+      }).join('') || '';
+
+      viewContent = `
+        <div class="phase-tabs">${phaseTabs}</div>
+        <div class="content">
+          <div class="phase-progress">
+            <span class="phase-count"><strong>${phase?.phase||''}</strong> — ${phase?.days||''}</span>
+            <span style="font-size:12px;font-weight:500;color:${phaseColor}">${phC}/${phT}</span>
+          </div>
+          ${sections}
+        </div>`;
+    } else {
+      const phaseOptions = PHASES.map(p=>`<option value="${p.phase}" ${state.aiPhaseOverride===p.phase?'selected':''}>${p.phase}</option>`).join('');
+      let resultsHtml = '';
+      if(state.aiState==='loading') {
+        resultsHtml = `<div class="ai-loading"><div class="ai-spinner"></div><span class="ai-loading-text">Generating ideas for ${app.name}…</span></div>`;
+      } else if(state.aiState==='error') {
+        resultsHtml = `<div class="ai-error">Error: ${state.aiStream}</div>`;
+      } else if(state.aiState==='done' && state.aiResults.length) {
+        resultsHtml = `<div class="ai-results">${state.aiResults.map(ins=>{
+          const [bg,fg] = CAT_COLORS[ins.category]||CAT_COLORS['General'];
+          return `<div class="ai-insight-card">
+            <div class="ai-insight-header">
+              <span class="ai-cat-badge" style="background:${bg};color:${fg}">${ins.category}</span>
+              <span class="ai-insight-title">${ins.title}</span>
+            </div>
+            <div class="ai-insight-body">${ins.body}</div>
+          </div>`;
+        }).join('')}</div>`;
+      }
+
+      viewContent = `
+        <div class="ai-panel">
+          <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6">
+            Describe your app and choose a phase — Claude will generate <strong style="color:var(--color-text-primary)">5 high-impact ideas</strong> you may not have thought of.
+          </div>
+          <div class="ai-generate-area">
+            <div class="ai-context-row">
+              <div class="ai-context-col">
+                <div class="ai-context-label">App type / niche</div>
+                <input type="text" placeholder="e.g. habit tracker, cooking converter, career app" value="${state.aiAppType}" oninput="state.aiAppType=this.value" />
+              </div>
+              <div class="ai-context-col" style="max-width:130px">
+                <div class="ai-context-label">Phase</div>
+                <select onchange="state.aiPhaseOverride=this.value">
+                  <option value="">Current phase</option>
+                  ${phaseOptions}
+                </select>
+              </div>
+            </div>
+            <button class="ai-gen-btn" onclick="generateAI()" ${state.aiState==='loading'?'disabled':''}>
+              ${state.aiState==='loading'?'<div class="ai-spinner" style="border-top-color:white;width:13px;height:13px;border-width:2px"></div> Generating…':'✦ Generate ideas'}
+            </button>
+          </div>
+          ${resultsHtml}
+        </div>`;
+    }
+
+    mainContent = `
+      <div class="app-header">
+        <div class="app-title-row">
+          <span style="font-size:20px">${app.emoji}</span>
+          <div>
+            <div class="app-big-name">${app.name}</div>
+            <div class="app-date">Added ${app.createdAt}</div>
+          </div>
+        </div>
+        <div class="overall-bar-wrap">
+          <div class="overall-label"><span>Overall progress</span><span>${tc} / ${tt} tasks · ${pct(tc,tt)}%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct(tc,tt)}%;background:${barColor}"></div></div>
+        </div>
+        <div class="view-tabs">
+          <button class="view-tab ${isChecklist?'active':''}" style="--tab-color:${barColor}" onclick="setView('checklist')">Checklist</button>
+          <button class="view-tab ${!isChecklist?'active':''}" style="--tab-color:#1D9E75" onclick="setView('ai')">AI insights <span class="ai-dot"></span></button>
+        </div>
+      </div>
+      ${viewContent}`;
+  }
+
+  const modal = state.showModal ? `<div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-title">Add new app</div>
+      <div class="modal-field">
+        <label class="modal-label">App name</label>
+        <input id="nameInput" type="text" placeholder="e.g. Tethyr, KitchenKit…" value="${state.newName}" oninput="state.newName=this.value" onkeydown="if(event.key==='Enter')createApp()" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Icon</label>
+        <div class="emoji-grid">${EMOJIS.map(e=>`<div class="emoji-opt ${e===state.newEmoji?'sel':''}" onclick="setEmoji('${e}')">${e}</div>`).join('')}</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-create" onclick="createApp()" ${!state.newName.trim()?'disabled':''}>Add app</button>
+      </div>
+    </div>
+  </div>` : '';
+
+  root.innerHTML = `<div class="tracker"><div class="sidebar"><div class="sidebar-header"><div class="sidebar-title">My apps</div></div><div class="app-list">${sidebarItems}</div><button class="add-btn" onclick="showModal()">+ Add app</button></div><div class="main">${mainContent}</div>${modal}</div>`;
+  if(state.showModal) setTimeout(()=>{ document.getElementById('nameInput')?.focus(); },50);
+}
+
+function selectApp(id) { state.selectedId=id; state.activePhase='prelaunch'; state.activeView='checklist'; state.aiState='idle'; state.aiResults=[]; render(); }
+function setPhase(id) { state.activePhase=id; render(); }
+function setView(v) { state.activeView=v; render(); }
+function toggle(key) { state.checks[key]=!state.checks[key]; saveData(); render(); }
+function showModal() { state.showModal=true; state.newName=''; state.newEmoji='📱'; render(); }
+function closeModal(e) { if(!e||e.target.classList.contains('modal-overlay')){ state.showModal=false; render(); } }
+function setEmoji(e) { state.newEmoji=e; render(); }
+function createApp() {
+  if(!state.newName.trim()) return;
+  const a = { id:Date.now().toString(), name:state.newName.trim(), emoji:state.newEmoji, createdAt:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) };
+  state.apps.push(a); state.selectedId=a.id; state.activePhase='prelaunch'; state.activeView='checklist'; state.showModal=false; saveData(); render();
+}
+function delApp(id) {
+  state.apps=state.apps.filter(a=>a.id!==id);
+  Object.keys(state.checks).forEach(k=>{ if(k.startsWith(id+'-')) delete state.checks[k]; });
+  if(state.selectedId===id) state.selectedId=state.apps[0]?.id||null;
+  saveData(); render();
+}
+
+loadData();
+</script>
+</body>
+</html>
